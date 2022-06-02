@@ -31,17 +31,18 @@ const DUMMY_EVENTS = [
   },
 ];
 
-export function getFeaturedEvents() {
-  return DUMMY_EVENTS.filter((event) => event.isFeatured);
-}
+// export function getFeaturedEvents() {
+//   return DUMMY_EVENTS.filter((event) => event.isFeatured);
+// }
 
 export function getAllEvents() {
   return DUMMY_EVENTS;
 }
 
+// getting year and month from dummyfiles
 export function getFilteredEvents(dateFilter) {
   const { year, month } = dateFilter;
-
+  // filter events
   let filteredEvents = DUMMY_EVENTS.filter((event) => {
     const eventDate = new Date(event.date);
     return (
