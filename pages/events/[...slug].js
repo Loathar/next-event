@@ -1,26 +1,54 @@
 import { useRouter } from "next/router";
 import { getFilteredEvents } from "../../components/helpers/api-util";
 import EventList from "../../components/events/event-list";
-import { Fragment } from "react/cjs/react.production.min";
+import { Fragment, useEffect, useState } from "react";
 import ResultsTitle from "../../components/events/results-title";
 import Button from "../../components/ui/button";
 import ErrorAlert from "../../components/ui/error-alert";
+import useSWR from "swr";
 
 function FilteredEventsPage(props) {
+  const [loadedEvents, setLoadedEvents] = useState();
   const router = useRouter();
   const filteredData = router.query.slug;
-  // console.log(filteredData);
-  // if (!filteredData) {
-  //   return <p className="center">Loading...</p>;
-  // }
+
+  const { data, error } = useSWR(
+    "https://nextjs-course-c5de2-default-rtdb.europe-west1.firebasedatabase.app/events.json"
+  );
+
+  useEffect(() => {
+    if (data) {
+      const events = [];
+
+      for (const key in data) {
+        events.push({
+          id: key,
+          ...data[key],
+        });
+      }
+      setLoadedEvents(events);
+      console.log(events);
+    }
+  }, [data]);
+
+  if (!loadedEvents) {
+    return <p className="center">Loading...</p>;
+  }
 
   const filteredYear = filteredData[0];
   const filteredMonth = filteredData[1];
   // // Converting to numbers
   const numYear = +filteredYear;
   const numMonth = +filteredMonth;
-  Check if numYear is a numner
-  if (props.hasError) {
+  //Check if numYear is a numner
+
+  if (
+    isNaN(numYear) ||
+    isNaN(numMonth) ||
+    numYear > 2030 ||
+    numYear < 2021 ||
+    numMonth < 1
+  ) {
     return (
       <Fragment>
         <ErrorAlert>
@@ -33,7 +61,14 @@ function FilteredEventsPage(props) {
     );
   }
 
-  const filteredEvents = props.events;
+  const filteredEvents = loadedEvents.filter((event) => {
+    const eventDate = new Date(event.date);
+    return (
+      eventDate.getFullYear() === numYear &&
+      eventDate.getMonth() === numMonth - 1
+    );
+  });
+
   if (!filteredEvents || filteredEvents.length === 0) {
     return (
       <Fragment>
@@ -47,7 +82,7 @@ function FilteredEventsPage(props) {
     );
   }
 
-  const date = new Date(props.date.year, props.date.month - 1);
+  const date = new Date(numYear, numMonth - 1);
   return (
     <Fragment>
       <ResultsTitle date={date} />
@@ -55,31 +90,32 @@ function FilteredEventsPage(props) {
     </Fragment>
   );
 }
-export async function getServerSideProps(context) {
-  const { params } = context;
-  const filteredData = params.slug;
+// export async function getServerSideProps(context) {
+//   const { params } = context;
+//   const filteredData = params.slug;
 
-  const filteredYear = filteredData[0];
-  const filteredMonth = filteredData[1];
-  // Converting to numbers
-  const numYear = +filteredYear;
-  const numMonth = +filteredMonth;
-  // Check if numYear is a numner
-  if (
-    isNaN(numYear) ||
-    isNaN(numMonth) ||
-    numYear > 2030 ||
-    numYear < 2021 ||
-    numMonth < 1
-  ) {
-    return { props: { hasError: true } };
-  }
-  const filteredEvents = await getFilteredEvents({
-    year: numYear,
-    month: numMonth,
-  });
-  return {
-    props: { events: filteredEvents, date: { year: numYear, month: numMonth } },
-  };
-}
+//   const filteredYear = filteredData[0];
+//   const filteredMonth = filteredData[1];
+//   // Converting to numbers
+//   const numYear = +filteredYear;
+//   const numMonth = +filteredMonth;
+//   // Check if numYear is a numner
+//   if (
+//     isNaN(numYear) ||
+//     isNaN(numMonth) ||
+//     numYear > 2030 ||
+//     numYear < 2021 ||
+//     numMonth < 1 ||
+//     error
+//   ) {
+//     return { props: { hasError: true } };
+//   }
+//   const filteredEvents = await getFilteredEvents({
+//     year: numYear,
+//     month: numMonth,
+//   });
+//   return {
+//     props: { events: filteredEvents, date: { year: numYear, month: numMonth } },
+//   };
+// }
 export default FilteredEventsPage;

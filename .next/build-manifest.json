@@ -29,6 +29,11 @@
       "static/chunks/webpack.js",
       "static/chunks/pages/events.js"
     ],
+    "/events/[...slug]": [
+      "static/chunks/main.js",
+      "static/chunks/webpack.js",
+      "static/chunks/pages/events/[...slug].js"
+    ],
     "/events/[eventId]": [
       "static/chunks/main.js",
       "static/chunks/webpack.js",
